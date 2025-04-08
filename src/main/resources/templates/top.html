@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <link th:href="@{/css/style.css}" rel="styleSheet">
+    <title>TOP</title>
+</head>
+<body>
+<div class="header-contents">
+    <h1>匿名掲示板</h1>
+</div>
+<div class="main-contents">
+    <a href="/new">
+        <button class="new-button" type="button">新規投稿</button>
+    </a>
+    <div class="message-icon" th:each="content : ${contents}">
+        <div>
+            ID : <span th:text="${content.id}"/>
+        </div>
+        <div class="text">
+            投稿 : <span th:text="${content.content}"/>
+        </div>
+        <div class="delete">
+            <form th:method="delete" th:action="@{/delete/{id}(id=${content.id})}" >
+            <input type="submit" value="削除"/>　
+            </form>
+        </div>
+        <div class="edit-button">
+            <a th:href="@{/edit/{id}(id=${content.id})}">
+                <input type="submit" value="編集"/>
+            </a>
+        </div>
+        <div class="comment-icon" th:each="comment : ${comments}">
+            <div class="text" th:if="${comment.reportId} == ${content.id}">
+                コメント : <span th:text="${comment.comment}"/>
+            </div>
+        </div>
+        <div class="comment-form">
+            <form method="post" th:action="@{/addComment/{id}(id=${content.id})}" th:object="${formModel}">
+                <div class="form-area">
+                    <label>コメント内容</label><br/>
+                    <textarea class="comment-box"  size="20" maxlength="200" /></textarea><br/>
+                    <input type="submit" value="返信" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>

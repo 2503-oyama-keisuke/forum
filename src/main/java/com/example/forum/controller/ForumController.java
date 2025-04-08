@@ -24,6 +24,7 @@ public class ForumController {
     @GetMapping
     public ModelAndView top() {
         ModelAndView mav = new ModelAndView();
+        CommentForm commentForm = new CommentForm();
         // 投稿を全件取得
         List<ReportForm> contentData = reportService.findAllReport();
         List<CommentForm> commentData = commentService.findAllComment();
@@ -32,6 +33,7 @@ public class ForumController {
         // 投稿データオブジェクトを保管
         mav.addObject("contents", contentData);
         mav.addObject("comments", commentData);
+        mav.addObject("formModel", commentForm);
         return mav;
     }
 
@@ -89,11 +91,31 @@ public class ForumController {
     }
 
     @PostMapping("/addComment/{id}")
-    public ModelAndView addComment(@PathVariable Integer reportId, @ModelAttribute("formModel") CommentForm commentForm){
+    public ModelAndView addComment(@PathVariable Integer id, @ModelAttribute("formModel") CommentForm commentForm){
+        commentForm.setReportId(id);
         // 投稿をテーブルに格納
         commentService.saveComment(commentForm);
         // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
 
+    @GetMapping("/editComment/{id}")
+    public ModelAndView editComment(@PathVariable Integer id) {
+        ModelAndView mav = new ModelAndView();
+        CommentForm comment = commentService.editComment(id);
+        mav.addObject("formModel", comment);
+        // 画面遷移先を指定
+        mav.setViewName("/editComment");
+        return mav;
+    }
+
+    @PutMapping("/updateComment/{id}/{reportId}")
+    public ModelAndView updateComment(@PathVariable Integer id, @PathVariable Integer reportId, @ModelAttribute("formModel") CommentForm comment){
+        comment.setId(id);
+        comment.setReportId(reportId);
+        // 投稿をテーブルに格納
+        commentService.saveComment(comment);
+        // rootへリダイレクト
+        return new ModelAndView("redirect:/");
+    }
 }

@@ -34,6 +34,7 @@ public class CommentService {
             Comment result = results.get(i);
             comment.setId(result.getId());
             comment.setContent(result.getContent());
+            comment.setReportId(result.getReportId());
             comments.add(comment);
         }
         return comments;
@@ -51,6 +52,14 @@ public class CommentService {
         Comment comment = new Comment();
         comment.setId(reqComment.getId());
         comment.setContent(reqComment.getContent());
+        comment.setReportId(reqComment.getReportId());
         return comment;
+    }
+
+    public CommentForm editComment(Integer id){
+        List<Comment> results = new ArrayList<>();
+        results.add((Comment) commentRepository.findById(id).orElse(null));
+        List<CommentForm> comments = setCommentForm(results);
+        return comments.get(0);
     }
 }

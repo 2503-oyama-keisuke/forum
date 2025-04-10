@@ -4,11 +4,17 @@ import com.example.forum.controller.form.CommentForm;
 import com.example.forum.controller.form.ReportForm;
 import com.example.forum.service.CommentService;
 import com.example.forum.service.ReportService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 @Controller
@@ -17,16 +23,18 @@ public class ForumController {
     ReportService reportService;
     @Autowired
     CommentService commentService;
+    @Autowired
+    HttpSession session;
 
     /*
      * 投稿内容表示処理
      */
     @GetMapping
-    public ModelAndView top() {
+    public ModelAndView top(@RequestParam(name="start", required = false) String start,@RequestParam(name="end",  required = false) String end) throws ParseException {
         ModelAndView mav = new ModelAndView();
         CommentForm commentForm = new CommentForm();
         // 投稿を全件取得
-        List<ReportForm> contentData = reportService.findAllReport();
+        List<ReportForm> contentData = reportService.findAllReport(start, end);
         List<CommentForm> commentData = commentService.findAllComment();
         // 画面遷移先を指定
         mav.setViewName("/top");
@@ -56,7 +64,11 @@ public class ForumController {
      * 新規投稿処理
      */
     @PostMapping("/add")
-    public ModelAndView addContent(@ModelAttribute("formModel") ReportForm reportForm){
+    public ModelAndView addContent(@ModelAttribute("formModel") @Validated ReportForm reportForm, BindingResult result) throws ParseException {
+
+        if(result.hasErrors()){
+            return new ModelAndView("/new");
+        }
         // 投稿をテーブルに格納
         reportService.saveReport(reportForm);
         // rootへリダイレクト
@@ -64,7 +76,7 @@ public class ForumController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ModelAndView deleteContent(@PathVariable Integer id){
+    public ModelAndView deleteContent(@PathVariable Integer id) {
         // 投稿をテーブルに格納
         reportService.deleteReport(id);
         // rootへリダイレクト
@@ -82,7 +94,10 @@ public class ForumController {
     }
 
     @PutMapping("/update/{id}")
-    public ModelAndView updateContent(@PathVariable Integer id, @ModelAttribute("formModel") ReportForm report){
+    public ModelAndView updateContent(@PathVariable Integer id, @ModelAttribute("formModel") @Validated ReportForm report, BindingResult result) throws ParseException {
+        if(result.hasErrors()){
+            return new ModelAndView("/edit");
+        }
         report.setId(id);
         // 投稿をテーブルに格納
         reportService.saveReport(report);
@@ -91,10 +106,18 @@ public class ForumController {
     }
 
     @PostMapping("/addComment/{id}")
-    public ModelAndView addComment(@PathVariable Integer id, @ModelAttribute("formModel") CommentForm commentForm){
+    public ModelAndView addComment(@PathVariable Integer id, @ModelAttribute("formModel") @Validated CommentForm commentForm, BindingResult result) throws ParseException {
+        if(result.hasErrors()){
+            session.setAttribute("content",result);
+
+            return new ModelAndView("redirect:/");
+        }
         commentForm.setReportId(id);
+        ReportForm reportForm = new ReportForm();
+        reportForm.setId(id);
         // 投稿をテーブルに格納
         commentService.saveComment(commentForm);
+        reportService.saveReport(reportForm);
         // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }
@@ -109,12 +132,23 @@ public class ForumController {
         return mav;
     }
 
-    @PutMapping("/updateComment/{id}/{reportId}")
-    public ModelAndView updateComment(@PathVariable Integer id, @PathVariable Integer reportId, @ModelAttribute("formModel") CommentForm comment){
+    @PutMapping("/updateComment/{id}/{reportId}/{createdDate}")
+    public ModelAndView updateComment(@PathVariable Integer id, @PathVariable Integer reportId, @ModelAttribute("formModel") @Validated CommentForm comment, BindingResult result) throws ParseException {
+        if(result.hasErrors()){
+            return new ModelAndView("/editComment");
+        }
         comment.setId(id);
         comment.setReportId(reportId);
         // 投稿をテーブルに格納
         commentService.saveComment(comment);
+        // rootへリダイレクト
+        return new ModelAndView("redirect:/");
+    }
+
+    @DeleteMapping("/deleteComment/{id}")
+    public ModelAndView deleteComment(@PathVariable Integer id) {
+        // 投稿をテーブルに格納
+        commentService.deleteComment(id);
         // rootへリダイレクト
         return new ModelAndView("redirect:/");
     }

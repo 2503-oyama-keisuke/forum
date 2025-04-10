@@ -10,10 +10,11 @@
   <h2>コメント編集</h2>
 </div>
 <div class="main-contents">
-  <form th:method="put" th:action="@{/updateComment/{id}(id=${formModel.id})/{reportId}(reportId=${formModel.reportId})}" th:object="${formModel}">
+  <form th:method="put" th:action="@{/updateComment/{id}/{reportId}/{createdDate}(id=${formModel.id}, reportId=${formModel.reportId}, createdDate=${formModel.createdDate})}" th:object="${formModel}">
     <div class="form-area">
       <label>コメント内容</label>
       <textarea class="comment-box" th:field="*{content}" size="20" maxlength="200" /></textarea><br/>
+      <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
       <input type="submit" value="更新" />
     </div>
   </form>

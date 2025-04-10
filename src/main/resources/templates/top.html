@@ -13,6 +13,15 @@
     <a href="/new">
         <button class="new-button" type="button">新規投稿</button>
     </a>
+    <div class="filteringDate">
+        <form th:method="get">
+            日付：
+            <input type="date" name="start">
+            ~
+            <input type="date" name="end">
+            <input type="submit" value="絞込">
+        </form>
+    </div>
     <div class="message-icon" th:each="content : ${contents}">
         <div>
             ID : <span th:text="${content.id}"/>
@@ -21,8 +30,8 @@
             投稿 : <span th:text="${content.content}"/>
         </div>
         <div class="delete">
-            <form th:method="delete" th:action="@{/delete/{id}(id=${content.id})}" >
-            <input type="submit" value="削除"/>　
+            <form th:method="delete" th:action="@{/delete/{id}(id=${content.id})}">
+                <input type="submit" value="削除"/>　
             </form>
         </div>
         <div class="edit-button">
@@ -33,10 +42,15 @@
         <div class="comment-icon" th:each="comment : ${comments}">
             <div class="text" th:if="${comment.reportId} == ${content.id}">
                 コメント : <span th:text="${comment.content}"/>
+                <div class="delete">
+                    <form th:method="delete" th:action="@{/deleteComment/{id}(id=${comment.id})}">
+                        <input type="submit" value="削除"/>　
+                    </form>
+                </div>
                 <div class="edit-button">
-                 <a th:href="@{/editComment/{id}(id=${comment.id})}">
-                      <input type="submit" value="編集"/>
-                 </a>
+                    <a th:href="@{/editComment/{id}(id=${comment.id})}">
+                        <input type="submit" value="編集"/>
+                    </a>
                 </div>
             </div>
         </div>
@@ -44,8 +58,9 @@
             <form method="post" th:action="@{/addComment/{id}(id=${content.id})}" th:object="${formModel}">
                 <div class="form-area">
                     <label>コメント内容</label><br/>
-                    <textarea class="comment-box" th:field="*{content}" size="20" maxlength="200" /></textarea><br/>
-                    <input type="submit" value="返信" />
+                    <textarea class="comment-box" th:field="*{content}" size="20" maxlength="200"/></textarea><br/>
+                    <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+                    <input type="submit" value="返信"/>
                 </div>
             </form>
         </div>

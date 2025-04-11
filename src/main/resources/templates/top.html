@@ -59,7 +59,11 @@
                 <div class="form-area">
                     <label>コメント内容</label><br/>
                     <textarea class="comment-box" th:field="*{content}" size="20" maxlength="200"/></textarea><br/>
-                    <div th:if="${#fields.hasErrors('content')}" th:errors="*{content}"></div>
+
+                    <div class="errorMessages-icon" th:each="errorMessage : ${errorMessages}">
+                            <span th:text="${errorMessage}"/>
+                    </div>
+
                     <input type="submit" value="返信"/>
                 </div>
             </form>

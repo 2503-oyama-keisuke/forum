@@ -7,14 +7,16 @@ import com.example.forum.service.ReportService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Controller
@@ -42,6 +44,12 @@ public class ForumController {
         mav.addObject("contents", contentData);
         mav.addObject("comments", commentData);
         mav.addObject("formModel", commentForm);
+
+        if(!CollectionUtils.isEmpty((Collection<?>) session.getAttribute("errorMessages"))){
+            mav.addObject("errorMessages", session.getAttribute("errorMessages"));
+        }
+        session.invalidate();
+
         return mav;
     }
 
@@ -107,11 +115,19 @@ public class ForumController {
 
     @PostMapping("/addComment/{id}")
     public ModelAndView addComment(@PathVariable Integer id, @ModelAttribute("formModel") @Validated CommentForm commentForm, BindingResult result) throws ParseException {
-        if(result.hasErrors()){
-            session.setAttribute("content",result);
 
+        if(result.hasErrors()){
+            List<String> errorMessages = new ArrayList<>();
+            String errorMessage;
+            String errorField;
+            for(FieldError error : result.getFieldErrors()){
+                errorMessage = error.getDefaultMessage();
+                errorMessages.add(errorMessage);
+            }
+            session.setAttribute("errorMessages",errorMessages);
             return new ModelAndView("redirect:/");
         }
+
         commentForm.setReportId(id);
         ReportForm reportForm = new ReportForm();
         reportForm.setId(id);
